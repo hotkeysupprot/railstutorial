@@ -17,3 +17,6 @@
 /tmp
 
 .idea/
+
+# Ignore Spring files.
+/spring/*.pid
