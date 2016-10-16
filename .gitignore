@@ -16,7 +16,9 @@
 !/log/.keep
 /tmp
 
-.idea/
+.DS_Store
+.idea
+/vendor/bundle
 
 # Ignore Spring files.
 /spring/*.pid
