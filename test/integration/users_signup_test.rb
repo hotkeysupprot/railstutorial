@@ -27,6 +27,8 @@ class UsersSignupTest < ActionDispatch::IntegrationTest
                                            password_confirmation: "password"}
     end
     assert_template 'users/show'
+    # ユーザー登録の終わったユーザーがログイン状態になっていること
+    assert is_logged_in?
     assert_not flash.empty?
   end
 end
