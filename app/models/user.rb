@@ -7,8 +7,11 @@ class User < ActiveRecord::Base
   validates :email, presence: true, length: { maximum: 255 },
             format: { with: VALID_EMAIL_REGEX },
             uniqueness: { case_sensitive: false }
+
+  # オブジェクト生成時に存在性を検証。空のパスワードは許可しない
   has_secure_password
-  validates :password, presence: true, length: { minimum: 6 }
+  # パスワード必須、6文字以上、ユーザー編集時の空のパスワードを許可
+  validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
   def self.digest(string)
     cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
