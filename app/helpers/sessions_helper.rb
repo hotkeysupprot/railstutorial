@@ -13,6 +13,11 @@ module SessionsHelper
     cookies.permanent[:remember_token] = user.remember_token
   end
 
+  # 与えられたユーザーがログイン済みユーザーであればtrueを返す
+  def current_user?(user)
+    user == current_user
+  end
+
   # 現在ログインしているユーザーを返す (ユーザーがログイン中の場合のみ)
   def current_user
     # @current_user ||= User.find_by(id: session[:user_id])
@@ -46,5 +51,18 @@ module SessionsHelper
     session.delete(:user_id)
     # 現在のユーザーをnilにする。セキュリティ上の死角を万が一にでも作り出さないためにあえてnilに設定。
     @current_user = nil
+  end
+
+  # 記憶したURL (もしくはデフォルト値) にリダイレクト
+  def redirect_back_or(default)
+    redirect_to(session[:forwarding_url] || default)
+    # redirect_toがあってもリダイレクトが発生するのはreturn文またはメソッドの最後なので、次の行は実行される
+    session.delete(:forwarding_url)
+  end
+
+  # アクセスしようとしたURLを覚えておく
+  def store_location
+    # GETリクエストが送られたときだけ格納。つまりPOSTリクエストなどは除外
+    session[:forwarding_url] = request.url if request.get?
   end
 end

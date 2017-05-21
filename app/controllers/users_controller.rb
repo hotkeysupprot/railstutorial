@@ -1,5 +1,16 @@
 class UsersController < ApplicationController
+  # ログインユーザーであることを確認してから一覧表示、編集が可能とする。
+  # ログインしていないと認可のチェック(このbefore_action)に引っかかりログインURLにリダイレクト
+  # されるテストは、users_controller_test.rbでおこなう。
+  before_action :logged_in_user, only: [:index, :edit, :update]
 
+  # 編集時別のユーザーになっていないかチェック
+  before_action :correct_user,   only: [:edit, :update]
+
+  def index
+    @users = User.all
+  end
+  
   def show
     @user = User.find(params[:id])
   end
@@ -39,5 +50,22 @@ class UsersController < ApplicationController
   def user_params
     params.require(:user).permit(:name, :email, :password,
                                  :password_confirmation)
+  end
+
+  # ログイン済みユーザーかどうか確認
+  def logged_in_user
+    unless logged_in?
+      # フレンドリーフォワーディングに備えてURLを記憶しておく
+      store_location
+      flash[:danger] = "Please log in."
+      redirect_to login_url
+    end
+  end
+
+  # 正しいユーザーかどうか確認
+  def correct_user
+    @user = User.find(params[:id])
+    # current_user? はセッションヘルパー
+    redirect_to(root_url) unless current_user?(@user)
   end
 end

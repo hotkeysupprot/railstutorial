@@ -3,12 +3,15 @@ class SessionsController < ApplicationController
   end
 
   def create
+    # ローカル変数user でなくインスタンス変数@user であれば、
+    # インテグレーションテストtest/integration/users_login_test.rb において
+    # remember_token属性にアクセスできるようになる。つまりassigns(:user).remember_token を用いる。
     @user = User.find_by(email: params[:session][:email].downcase)
     if @user && @user.authenticate(params[:session][:password])
-      # ログイン後にユーザー情報のページにリダイレクトする
+      # ログイン後にユーザー情報のページにリダイレクトする、のはやめてフレンドリーフォワーディング
       log_in @user
       params[:session][:remember_me] == '1' ? remember(@user) : forget(@user)
-      redirect_to @user
+      redirect_back_or @user
     else
       flash.now[:danger] = 'Invalid email/password combination'
       render 'new'
