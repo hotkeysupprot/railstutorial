@@ -1,11 +1,14 @@
 class UsersController < ApplicationController
-  # ログインユーザーであることを確認してから一覧表示、編集が可能とする。
-  # ログインしていないと認可のチェック(このbefore_action)に引っかかりログインURLにリダイレクト
-  # されるテストは、users_controller_test.rbでおこなう。
-  before_action :logged_in_user, only: [:index, :edit, :update]
+  # ログインユーザーでなければならないアクションを記述する。
+  # ログインしていないと認可のチェック(このbefore_action)に引っかかりログインURL
+  # にリダイレクトされるテストは、users_controller_test.rbでおこなう。
+  before_action :logged_in_user, only: [:index, :edit, :update, :destroy]
 
-  # 編集時別のユーザーになっていないかチェック
-  before_action :correct_user,   only: [:edit, :update]
+  # 自分自身に対する操作でなければならないアクションを記述する（別ユーザーの編集を防止する）
+  before_action :correct_user, only: [:edit, :update]
+  
+  # 管理者だけが実行できるアクションを記述する。
+  before_action :admin_user, only: :destroy
 
   def index
     @users = User.paginate(page: params[:page])
@@ -45,6 +48,12 @@ class UsersController < ApplicationController
     end
   end
 
+  def destroy
+    User.find(params[:id]).destroy
+    flash[:success] = "User deleted"
+    redirect_to users_url # ユーザーインデックスに移動
+  end
+
   private
 
   def user_params
@@ -52,7 +61,7 @@ class UsersController < ApplicationController
                                  :password_confirmation)
   end
 
-  # ログイン済みユーザーかどうか確認
+  # ログイン済みユーザーかどうかチェック
   def logged_in_user
     unless logged_in?
       # フレンドリーフォワーディングに備えてURLを記憶しておく
@@ -62,10 +71,15 @@ class UsersController < ApplicationController
     end
   end
 
-  # 正しいユーザーかどうか確認
+  # 操作対象ユーザーが自分自身であるかチェック
   def correct_user
     @user = User.find(params[:id])
     # current_user? はセッションヘルパー
     redirect_to(root_url) unless current_user?(@user)
+  end
+
+  # 管理者チェック
+  def admin_user
+    redirect_to(root_url) unless current_user.admin?
   end
 end

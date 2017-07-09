@@ -46,4 +46,22 @@ class UsersControllerTest < ActionController::TestCase
     assert_redirected_to root_url
   end
 
+  # destroy リスト9.56: 管理者権限の制御をアクションレベルでテストする
+  
+  test "should redirect destroy when not logged in / ログインしていないユーザーであれば、ログイン画面にリダイレクト" do
+    # Userテーブルでレコードは削除されないので、コントローラにDELETEメソッドdestroyアクションを要求しても User.count は変化しないはず
+    assert_no_difference 'User.count' do
+      delete :destroy, id: @user
+    end
+    assert_redirected_to login_url
+  end
+
+  test "should redirect destroy when logged in as a non-admin / 管理者でなければ、ホーム画面にリダイレクト" do
+    log_in_as(@other_user)
+    assert_no_difference 'User.count' do
+      delete :destroy, id: @user
+    end
+    assert_redirected_to root_url
+  end
+
 end
